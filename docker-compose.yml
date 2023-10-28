@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  zookeeper: 
+      image: wurstmeister/zookeeper:latest
+      volumes:
+         - ./zookeeper_data:/opt/zookeeper/data 
+      container_name: zookeeper 
+      ports:
+         - "10002:2181" 
+         - "10003:2182" 
+      restart: always
+  kafka: 
+      image: wurstmeister/kafka:latest 
+      container_name: kafka 
+      depends_on:
+          - zookeeper 
+      ports: 
+          - "10004:9092" 
+      volumes: 
+          - ./kafka_log:/kafka 
+      environment: 
+          - KAFKA_BROKER_NO=0 
+          - KAFKA_BROKER_ID=0 
+          - KAFKA_LISTENERS=PLAINTEXT://kafka:9092
+          - KAFKA——ADVERTISED——LISTENERS=PLAINTEXT://192.168.118.129:10004
+          - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT 
+          - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 
+          - KAFKA_HEAP_OPTS=-Xmx512M -Xms16M
+      restart: always
+
+  kafka_manager: 
+      image: sheepkiller/kafka-manager 
+      ports: 
+          - "10005:9000" 
+      environment: 
+          - ZK_HOSTS=zookeeper:2181 
+      depends_on: 
+          - zookeeper 
+          - kafka 
+      restart: always
+
+
+
+  
